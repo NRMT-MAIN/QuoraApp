@@ -3,7 +3,9 @@ package com.example.quoraReactiveApp.services;
 import com.example.quoraReactiveApp.adpaters.QuestionAdapter;
 import com.example.quoraReactiveApp.dtos.QuestionRequestDTO;
 import com.example.quoraReactiveApp.dtos.QuestionResponseDTO;
+import com.example.quoraReactiveApp.events.ViewCountEvent;
 import com.example.quoraReactiveApp.models.QuestionEntity;
+import com.example.quoraReactiveApp.producers.KafkaEventProducer;
 import com.example.quoraReactiveApp.repositories.QuestionRepository;
 import com.example.quoraReactiveApp.utils.CursorUtils;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import java.time.LocalDateTime;
 public class QuestionService implements IQuestionService {
 
     private final QuestionRepository questionRepository ;
+    private final KafkaEventProducer kafkaEventProducer ;
 
     @Override
     public Mono<QuestionResponseDTO> createQuestion(QuestionRequestDTO questionRequestDTO) {
@@ -39,7 +42,11 @@ public class QuestionService implements IQuestionService {
     @Override
     public Mono<QuestionResponseDTO> getById(String id) {
         return this.questionRepository.findById(id)
-                .doOnSuccess(response -> System.out.println("Question fetched successfully: " + response))
+                .doOnSuccess(response -> {
+                    System.out.println("Question fetched successfully: " + response) ;
+                    ViewCountEvent viewCountEvent = new ViewCountEvent(id , "question" , LocalDateTime.now()) ;
+                    kafkaEventProducer.publishViewCount(viewCountEvent);
+                })
                 .doOnError(error -> System.out.println("Error in fetching by id " + error))
                 .map(QuestionAdapter::toQuestionResponseDTO); // Convert inside the reactive chain
     }

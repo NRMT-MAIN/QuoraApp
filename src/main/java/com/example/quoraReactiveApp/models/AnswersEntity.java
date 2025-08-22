@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
@@ -17,24 +18,22 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Document(collection = "Quora_DB")
-public class QuestionEntity {
+@Document(collection = "answers")
+public class AnswersEntity {
     @Id
     private String id ;
 
-    @NotBlank(message="Question tile is required")
-    @Size(min = 5 , max = 100 , message = "Title must be between 5 and 100 characters")
-    private String title ;
-
-    @NotBlank(message = "Question Content is required")
+    @NotBlank(message = "Content is required")
     @Size(min = 10 , max = 1000 , message = "Content must be between 10 and 1000 characters")
-    private String content ;
+    private String contest ;
 
-    private Integer views ;
+    @Indexed
+    private String questionId ;
 
     @CreatedDate
+    @Indexed
     private LocalDateTime createdAt ;
 
     @LastModifiedDate
-    private LocalDateTime updatedAt ;
+    private  LocalDateTime updatedAt ;
 }
